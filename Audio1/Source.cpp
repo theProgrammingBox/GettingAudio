@@ -50,7 +50,7 @@ int main()
 		waveInOpen(&hWaveIn, WAVE_MAPPER, &waveFormat, 0, 0, CALLBACK_NULL);
 	}
 
-	float seconds = 0.1;
+	float seconds = 1.0f / 60.0f;	//60 fps
 	
 	// create a recording buffer
 	WAVEHDR waveHeader;
@@ -68,6 +68,7 @@ int main()
 		waveInAddBuffer(hWaveIn, &waveHeader, sizeof(WAVEHDR));
 	}
 
+	int i = 0;
 	while (true)
 	{
 		// start recording
@@ -83,50 +84,24 @@ int main()
 		short* samples = (short*)waveHeader.lpData;
 		int sampleCount = waveHeader.dwBytesRecorded / sizeof(short);
 		
-		float minValue = 0;
-		float maxValue = 0;
+		float minValue = INFINITY;
+		float maxValue = -INFINITY;
 		for (int i = 0; i < sampleCount; i++)
 		{
 			if (samples[i] < minValue) minValue = samples[i];
 			if (samples[i] > maxValue) maxValue = samples[i];
 		}
 
+		//cout << "min: " << minValue << " max: " << maxValue << endl;
+
 		for (int i = 0; i < sampleCount; i++)
 		{
 			wcout << GetVisual(L".:-=+*#%@", samples[i], minValue, maxValue);
 		}
-		wcout << endl;
 		
 		// reset the recording buffer
 		waveHeader.dwBytesRecorded = 0;
 		waveInPrepareHeader(hWaveIn, &waveHeader, sizeof(WAVEHDR));
 		waveInAddBuffer(hWaveIn, &waveHeader, sizeof(WAVEHDR));
 	}
-
-	// display the recording
-	{
-		short* samples = (short*)waveHeader.lpData;
-		int sampleCount = waveHeader.dwBytesRecorded / sizeof(short);
-		cout << sampleCount << endl;
-		cout << sizeof(short) << endl;
-
-		float minValue = 0;
-		float maxValue = 0;
-		for (int i = 0; i < sampleCount; i++)
-		{
-			if (samples[i] < minValue) minValue = samples[i];
-			if (samples[i] > maxValue) maxValue = samples[i];
-		}
-
-		for (int i = 0; i < sampleCount; i++)
-		{
-			wcout << GetVisual(L".:-=+*#%@", samples[i], minValue, maxValue);
-		}
-		wcout << endl;
-	}
-
-	// clean up
-	waveInUnprepareHeader(hWaveIn, &waveHeader, sizeof(WAVEHDR));
-	waveInClose(hWaveIn);
-	delete[] waveHeader.lpData;
 }
